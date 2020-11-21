@@ -12,7 +12,6 @@ import com.linkedin.dex.spec.DexFile
 import com.linkedin.dex.spec.MethodAnnotation
 import com.linkedin.dex.spec.MethodIdItem
 
-
 /**
  * Check if there are any class, field, method, or parameter annotations in the given class
  *
@@ -80,7 +79,7 @@ fun DexFile.getTestAnnotation(annotationItem: AnnotationItem): TestAnnotation {
 }
 
 private fun DexFile.checkIfAnnotationIsInherited(annotationClassDef: ClassDefItem?): Boolean {
-    //Early return when classpath doesn't contain Ljava/lang/annotation/Inherited annotation
+    // Early return when classpath doesn't contain Ljava/lang/annotation/Inherited annotation
     if (inheritedAnnotationTypeIdIndex == null) return false
 
     return annotationClassDef?.let {

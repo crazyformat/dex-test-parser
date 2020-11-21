@@ -105,3 +105,12 @@ testClasses.dependsOn ':test-app:assembleDebugAndroidTest'
 test {
     workingDir project.getRootProject().getProjectDir()
 }
+
+jar {
+    manifest {
+        attributes(
+            'Main-CLass': 'com.linkedin.dex.parser.DexParser'
+        )
+    }
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+}
