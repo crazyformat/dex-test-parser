@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.switch
 import com.linkedin.dex.spec.DexFile
 import java.io.File
 import java.io.FileInputStream
@@ -34,8 +35,12 @@ private class DexParserCommand : CliktCommand() {
 
     val customAnnotations: List<String> by option("-A", "--annotation").multiple().help("add custom annotation used by tests")
 
+    val testFramework: String? by option(
+        help="Specify test framework used for tests, default is 'all-test-frameworks'"
+    ).switch(mapOf("--all-test-frameworks" to "all", "--junit3" to "junit3", "--junit4" to "junit4"))
+
     override fun run() {
-        val allItems = DexParser.findTestNames(apkPath, customAnnotations)
+        val allItems = DexParser.findTestNames(apkPath, testFramework, customAnnotations)
         if (outputDir.isEmpty()) {
             println(allItems.joinToString(separator = "\n"))
         } else {
@@ -60,8 +65,8 @@ private class DexParserCommand : CliktCommand() {
          */
         @JvmStatic
         @JvmOverloads
-        fun findTestNames(apkPath: String, customAnnotations: List<String> = emptyList()): List<String> {
-            return findTestMethods(apkPath, customAnnotations).map { it.testName }.distinct()
+        fun findTestNames(apkPath: String, testFramework: String?, customAnnotations: List<String> = emptyList()): List<String> {
+            return findTestMethods(apkPath, testFramework, customAnnotations).map { it.testName }.distinct()
         }
 
         /**
@@ -72,11 +77,21 @@ private class DexParserCommand : CliktCommand() {
          */
         @JvmStatic
         @JvmOverloads
-        fun findTestMethods(apkPath: String, customAnnotations: List<String> = emptyList()): List<TestMethod> {
+        fun findTestMethods(apkPath: String, testFramework: String?, customAnnotations: List<String> = emptyList()): List<TestMethod> {
             val dexFiles = readDexFiles(apkPath)
 
-            val junit3Items = findJUnit3Tests(dexFiles).sorted()
-            val junit4Items = findAllJUnit4Tests(dexFiles, customAnnotations).sorted()
+            var junit3Items = listOf<TestMethod>()
+            var junit4Items = listOf<TestMethod>()
+            if (
+                testFramework.isNullOrEmpty() or testFramework.equals("all") or testFramework.equals("junit3")
+            ) {
+                junit3Items += findJUnit3Tests(dexFiles).sorted()
+            }
+            if (
+                testFramework.isNullOrEmpty() or testFramework.equals("all") or testFramework.equals("junit4")
+            ) {
+                junit4Items += findAllJUnit4Tests(dexFiles, customAnnotations).sorted()
+            }
 
             return (junit3Items + junit4Items).sorted()
         }
