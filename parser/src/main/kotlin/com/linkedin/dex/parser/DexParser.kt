@@ -97,7 +97,7 @@ private class DexParserCommand : CliktCommand() {
                             }
                         }
                         .map { ByteBuffer.wrap(it) }
-                        .map(::DexFile)
+                        .map { DexFile(it) }
                         .toList()
             }
         }
